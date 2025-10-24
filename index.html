@@ -1,11 +1,185 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <title>My Website</title>
-  </head>
-  <body>
-    <h1>Hello GitHub Pages!</h1>
-    <p>初めてのWebサイト公開です。</p>
-  </body>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ゴルフコンペ管理システム</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- ログイン画面 -->
+    <div id="loginScreen" class="screen">
+        <div class="login-container">
+            <h1>🏌️ ゴルフコンペ管理システム</h1>
+            <div class="login-form">
+                <h2>ログイン</h2>
+                <input type="password" id="loginPassword" placeholder="パスワードを入力してください" required>
+                <button id="loginBtn" class="btn btn-primary">ログイン</button>
+                <div id="loginError" class="error-message"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- メインアプリケーション -->
+    <div id="mainApp" class="screen hidden">
+        <!-- ヘッダー -->
+        <header class="header">
+            <h1>🏌️ ゴルフコンペ管理システム</h1>
+            <div class="header-actions">
+                <button id="exportBtn" class="btn btn-secondary">データエクスポート</button>
+                <button id="settingsBtn" class="btn btn-secondary">設定</button>
+                <button id="logoutBtn" class="btn btn-outline">ログアウト</button>
+            </div>
+        </header>
+
+        <!-- ナビゲーション -->
+        <nav class="nav">
+            <button class="nav-btn active" data-tab="participants">参加者管理</button>
+            <button class="nav-btn" data-tab="competitions">コンペ管理</button>
+            <button class="nav-btn" data-tab="attendance">出欠管理</button>
+            <button class="nav-btn" data-tab="reports">レポート</button>
+        </nav>
+
+        <!-- 参加者管理タブ -->
+        <div id="participantsTab" class="tab-content active">
+            <div class="section-header">
+                <h2>参加者管理</h2>
+                <button id="addParticipantBtn" class="btn btn-primary">参加者追加</button>
+            </div>
+            
+            <div class="table-container">
+                <table id="participantsTable" class="data-table">
+                    <thead>
+                        <tr>
+                            <th>名前</th>
+                            <th>メールアドレス</th>
+                            <th>登録日</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- コンペ管理タブ -->
+        <div id="competitionsTab" class="tab-content">
+            <div class="section-header">
+                <h2>コンペ管理</h2>
+                <button id="addCompetitionBtn" class="btn btn-primary">コンペ追加</button>
+            </div>
+            
+            <div class="table-container">
+                <table id="competitionsTable" class="data-table">
+                    <thead>
+                        <tr>
+                            <th>タイトル</th>
+                            <th>日付</th>
+                            <th>参加者数</th>
+                            <th>合計参加費</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 出欠管理タブ -->
+        <div id="attendanceTab" class="tab-content">
+            <div class="section-header">
+                <h2>出欠管理</h2>
+                <select id="competitionSelect" class="form-select">
+                    <option value="">コンペを選択してください</option>
+                </select>
+            </div>
+            
+            <div id="attendanceContent" class="hidden">
+                <div class="table-container">
+                    <table id="attendanceTable" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>参加者名</th>
+                                <th>出欠</th>
+                                <th>参加費</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- レポートタブ -->
+        <div id="reportsTab" class="tab-content">
+            <div class="section-header">
+                <h2>レポート</h2>
+            </div>
+            
+            <div class="reports-grid">
+                <div class="report-card">
+                    <h3>参加者別履歴</h3>
+                    <select id="participantReportSelect" class="form-select">
+                        <option value="">参加者を選択してください</option>
+                    </select>
+                    <div id="participantReport" class="report-content"></div>
+                </div>
+                
+                <div class="report-card">
+                    <h3>コンペ別詳細</h3>
+                    <select id="competitionReportSelect" class="form-select">
+                        <option value="">コンペを選択してください</option>
+                    </select>
+                    <div id="competitionReport" class="report-content"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- モーダル -->
+    <div id="modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle"></h3>
+                <button id="closeModal" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <!-- 設定画面 -->
+    <div id="settingsScreen" class="screen hidden">
+        <div class="settings-container">
+            <h2>設定</h2>
+            <div class="settings-form">
+                <div class="form-group">
+                    <label for="githubToken">GitHub Personal Access Token:</label>
+                    <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+                    <small>GitHub Gistにアクセスするためのトークンです</small>
+                </div>
+                <div class="form-group">
+                    <label for="sitePassword">サイトパスワード:</label>
+                    <input type="password" id="sitePassword" placeholder="サイトアクセス用のパスワード">
+                    <small>複数人で共有するパスワードです</small>
+                </div>
+                <div class="form-actions">
+                    <button id="saveSettingsBtn" class="btn btn-primary">保存</button>
+                    <button id="backToMainBtn" class="btn btn-secondary">戻る</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ローディング -->
+    <div id="loading" class="loading hidden">
+        <div class="spinner"></div>
+        <p>データを読み込み中...</p>
+    </div>
+
+    <script src="github-api.js"></script>
+    <script src="script.js"></script>
+</body>
 </html>
+
+
