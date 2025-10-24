@@ -189,11 +189,13 @@ class GolfCompetitionManager {
         document.getElementById(`${tabName}Tab`).classList.add('active');
 
         // タブごとの初期化処理
+        console.log('Switching to tab:', tabName);
         switch (tabName) {
             case 'participants':
                 this.renderParticipantsTable();
                 break;
             case 'competitions':
+                console.log('Rendering competitions table...');
                 this.renderCompetitionsTable();
                 break;
             case 'attendance':
@@ -212,22 +214,26 @@ class GolfCompetitionManager {
         if (!this.githubAPI.token) {
             console.log('GitHub token not set, using local data');
             this.loadLocalData();
+            this.renderCurrentTab();
             return;
         }
 
         try {
             this.showLoading(true);
             const data = await this.githubAPI.loadData();
+            console.log('Loaded data from GitHub:', data);
             this.currentData = {
                 participants: data.participants || [],
                 competitions: data.competitions || [],
                 attendance: data.attendance || []
             };
+            console.log('Current data after loading:', this.currentData);
             this.saveLocalData();
             this.renderCurrentTab();
         } catch (error) {
             console.error('Error loading data:', error);
             this.loadLocalData();
+            this.renderCurrentTab();
             alert('データの読み込みに失敗しました。ローカルデータを使用します。');
         } finally {
             this.showLoading(false);
@@ -239,8 +245,17 @@ class GolfCompetitionManager {
      */
     loadLocalData() {
         const localData = localStorage.getItem('golfData');
+        console.log('Loading local data:', localData);
         if (localData) {
             this.currentData = JSON.parse(localData);
+            console.log('Parsed local data:', this.currentData);
+        } else {
+            console.log('No local data found, using empty data');
+            this.currentData = {
+                participants: [],
+                competitions: [],
+                attendance: []
+            };
         }
     }
 
@@ -255,15 +270,19 @@ class GolfCompetitionManager {
      * データを保存
      */
     async saveData() {
+        console.log('Saving data:', this.currentData);
         this.saveLocalData();
         
         if (this.githubAPI.token) {
             try {
                 await this.githubAPI.saveAllData(this.currentData);
+                console.log('Data saved to GitHub successfully');
             } catch (error) {
                 console.error('Error saving data to GitHub:', error);
                 alert('GitHubへの保存に失敗しました。ローカルには保存されています。');
             }
+        } else {
+            console.log('No GitHub token, data saved locally only');
         }
     }
 
@@ -317,6 +336,21 @@ class GolfCompetitionManager {
     renderCompetitionsTable() {
         const tbody = document.querySelector('#competitionsTable tbody');
         tbody.innerHTML = '';
+
+        console.log('Rendering competitions table. Competitions count:', this.currentData.competitions.length);
+        console.log('Competitions data:', this.currentData.competitions);
+
+        if (this.currentData.competitions.length === 0) {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td colspan="5" style="text-align: center; color: #6c757d; padding: 2rem;">
+                    コンペが登録されていません。<br>
+                    「コンペ追加」ボタンから新しいコンペを追加してください。
+                </td>
+            `;
+            tbody.appendChild(row);
+            return;
+        }
 
         this.currentData.competitions.forEach(competition => {
             const attendance = this.currentData.attendance.filter(a => a.competitionId === competition.id);
@@ -501,7 +535,9 @@ class GolfCompetitionManager {
             createdAt: new Date().toISOString()
         };
 
+        console.log('Adding competition:', competition);
         this.currentData.competitions.push(competition);
+        console.log('Competitions after adding:', this.currentData.competitions);
         this.saveData();
         this.renderCompetitionsTable();
         this.closeModal();
