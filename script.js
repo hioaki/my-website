@@ -953,5 +953,23 @@ class GolfCompetitionManager {
 // アプリケーションを初期化
 let golfApp;
 document.addEventListener('DOMContentLoaded', () => {
-    golfApp = new GolfCompetitionManager();
+    console.log('DOM loaded, initializing Golf Competition Manager...');
+    try {
+        golfApp = new GolfCompetitionManager();
+        console.log('Golf Competition Manager initialized successfully');
+    } catch (error) {
+        console.error('Error initializing Golf Competition Manager:', error);
+        alert('アプリケーションの初期化に失敗しました: ' + error.message);
+    }
+});
+
+// グローバルエラーハンドラー
+window.addEventListener('error', (event) => {
+    console.error('Global error:', event.error);
+    alert('エラーが発生しました: ' + event.error.message);
+});
+
+// ページ読み込み完了時のログ
+window.addEventListener('load', () => {
+    console.log('Page fully loaded');
 });

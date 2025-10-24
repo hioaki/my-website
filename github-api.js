@@ -218,4 +218,7 @@ class GitHubGistAPI {
 // グローバルにGitHubGistAPIクラスを公開
 window.GitHubGistAPI = GitHubGistAPI;
 
+// ファイル読み込み確認
+console.log('GitHub Gist API loaded successfully');
+
 

@@ -179,7 +179,18 @@
 
     <script src="github-api.js"></script>
     <script src="script.js"></script>
-</body>
-</html>
+    <script>
+        // 基本的なログ出力
+        console.log('HTML page loaded');
+        console.log('Script files should be loaded now');
+        
+        // ファイル読み込みエラーの確認
+        window.addEventListener('error', function(e) {
+            if (e.target.tagName === 'SCRIPT') {
+                console.error('Script loading error:', e.target.src);
+                alert('スクリプトファイルの読み込みに失敗しました: ' + e.target.src);
+            }
+        });
+    </script>
 
 
