@@ -176,6 +176,8 @@ class GolfCompetitionManager {
      * タブ切り替え
      */
     switchTab(tabName) {
+        console.log('Switching to tab:', tabName);
+        
         // ナビゲーションボタンの状態更新
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.classList.remove('active');
@@ -188,24 +190,25 @@ class GolfCompetitionManager {
         });
         document.getElementById(`${tabName}Tab`).classList.add('active');
 
-        // タブごとの初期化処理
-        console.log('Switching to tab:', tabName);
-        switch (tabName) {
-            case 'participants':
-                this.renderParticipantsTable();
-                break;
-            case 'competitions':
-                console.log('Rendering competitions table...');
-                this.renderCompetitionsTable();
-                break;
-            case 'attendance':
-                console.log('Updating attendance tab...');
-                this.updateCompetitionSelect();
-                break;
-            case 'reports':
-                this.updateReportSelects();
-                break;
-        }
+        // タブごとの初期化処理（少し遅延させて確実に実行）
+        setTimeout(() => {
+            switch (tabName) {
+                case 'participants':
+                    this.renderParticipantsTable();
+                    break;
+                case 'competitions':
+                    console.log('Rendering competitions table...');
+                    this.renderCompetitionsTable();
+                    break;
+                case 'attendance':
+                    console.log('Updating attendance tab...');
+                    this.updateCompetitionSelect();
+                    break;
+                case 'reports':
+                    this.updateReportSelects();
+                    break;
+            }
+        }, 100);
     }
 
     /**
@@ -231,7 +234,10 @@ class GolfCompetitionManager {
             console.log('Current data after loading:', this.currentData);
             this.saveLocalData();
             this.updateAllSelects();
-            this.renderCurrentTab();
+            // 少し遅延させてからタブを描画
+            setTimeout(() => {
+                this.renderCurrentTab();
+            }, 200);
         } catch (error) {
             console.error('Error loading data:', error);
             this.loadLocalData();
@@ -280,12 +286,16 @@ class GolfCompetitionManager {
             try {
                 await this.githubAPI.saveAllData(this.currentData);
                 console.log('Data saved to GitHub successfully');
+                // 保存後に選択肢を更新
+                this.updateAllSelects();
             } catch (error) {
                 console.error('Error saving data to GitHub:', error);
                 alert('GitHubへの保存に失敗しました。ローカルには保存されています。');
             }
         } else {
             console.log('No GitHub token, data saved locally only');
+            // ローカル保存後にも選択肢を更新
+            this.updateAllSelects();
         }
     }
 
@@ -339,6 +349,11 @@ class GolfCompetitionManager {
      */
     renderCompetitionsTable() {
         const tbody = document.querySelector('#competitionsTable tbody');
+        if (!tbody) {
+            console.error('Competitions table tbody not found!');
+            return;
+        }
+        
         tbody.innerHTML = '';
 
         console.log('Rendering competitions table. Competitions count:', this.currentData.competitions.length);
@@ -356,7 +371,8 @@ class GolfCompetitionManager {
             return;
         }
 
-        this.currentData.competitions.forEach(competition => {
+        this.currentData.competitions.forEach((competition, index) => {
+            console.log(`Rendering competition ${index + 1}:`, competition);
             const attendance = this.currentData.attendance.filter(a => a.competitionId === competition.id);
             const participants = attendance.filter(a => a.status === 'present').length;
             const totalFee = attendance.filter(a => a.status === 'present').reduce((sum, a) => sum + (a.fee || 0), 0);
@@ -373,7 +389,10 @@ class GolfCompetitionManager {
                 </td>
             `;
             tbody.appendChild(row);
+            console.log(`Added competition row ${index + 1}`);
         });
+        
+        console.log('Competitions table rendering completed');
     }
 
     /**
@@ -523,7 +542,7 @@ class GolfCompetitionManager {
     /**
      * コンペを追加
      */
-    addCompetition() {
+    async addCompetition() {
         const title = document.getElementById('competitionTitle').value.trim();
         const date = document.getElementById('competitionDate').value;
 
@@ -542,9 +561,16 @@ class GolfCompetitionManager {
         console.log('Adding competition:', competition);
         this.currentData.competitions.push(competition);
         console.log('Competitions after adding:', this.currentData.competitions);
-        this.saveData();
-        this.updateAllSelects();
-        this.renderCompetitionsTable();
+        
+        // データを保存してからテーブルを更新
+        await this.saveData();
+        
+        // コンペ管理タブがアクティブな場合のみテーブルを再描画
+        const activeTab = document.querySelector('.nav-btn.active');
+        if (activeTab && activeTab.dataset.tab === 'competitions') {
+            this.renderCompetitionsTable();
+        }
+        
         this.closeModal();
     }
 
