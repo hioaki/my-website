@@ -106,7 +106,10 @@ class GolfCompetitionManager {
         if (password === this.sitePassword) {
             this.isAuthenticated = true;
             this.showMainApp();
-            this.loadData();
+            // ログイン後、少し遅延させてからデータを読み込み
+            setTimeout(() => {
+                this.loadData();
+            }, 100);
         } else {
             errorDiv.textContent = 'パスワードが正しくありません';
             errorDiv.style.display = 'block';
@@ -234,10 +237,8 @@ class GolfCompetitionManager {
             console.log('Current data after loading:', this.currentData);
             this.saveLocalData();
             this.updateAllSelects();
-            // 少し遅延させてからタブを描画
-            setTimeout(() => {
-                this.renderCurrentTab();
-            }, 200);
+            // データ読み込み後は遅延なしで即座に描画
+            this.renderCurrentTab();
         } catch (error) {
             console.error('Error loading data:', error);
             this.loadLocalData();
@@ -266,6 +267,8 @@ class GolfCompetitionManager {
             };
         }
         this.updateAllSelects();
+        // ローカルデータ読み込み後も即座に描画
+        this.renderCurrentTab();
     }
 
     /**
@@ -318,7 +321,25 @@ class GolfCompetitionManager {
         const activeTab = document.querySelector('.nav-btn.active');
         console.log('Rendering current tab:', activeTab ? activeTab.dataset.tab : 'none');
         if (activeTab) {
-            this.switchTab(activeTab.dataset.tab);
+            // 直接テーブルを描画（タブ切り替えの遅延を避ける）
+            const tabName = activeTab.dataset.tab;
+            console.log('Direct rendering for tab:', tabName);
+            switch (tabName) {
+                case 'participants':
+                    this.renderParticipantsTable();
+                    break;
+                case 'competitions':
+                    console.log('Direct rendering competitions table...');
+                    this.renderCompetitionsTable();
+                    break;
+                case 'attendance':
+                    console.log('Direct updating attendance tab...');
+                    this.updateCompetitionSelect();
+                    break;
+                case 'reports':
+                    this.updateReportSelects();
+                    break;
+            }
         }
     }
 
@@ -348,18 +369,21 @@ class GolfCompetitionManager {
      * コンペテーブルを描画
      */
     renderCompetitionsTable() {
+        console.log('=== renderCompetitionsTable START ===');
         const tbody = document.querySelector('#competitionsTable tbody');
         if (!tbody) {
             console.error('Competitions table tbody not found!');
             return;
         }
         
+        console.log('Found tbody element:', tbody);
         tbody.innerHTML = '';
 
         console.log('Rendering competitions table. Competitions count:', this.currentData.competitions.length);
         console.log('Competitions data:', this.currentData.competitions);
 
         if (this.currentData.competitions.length === 0) {
+            console.log('No competitions found, showing empty message');
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td colspan="5" style="text-align: center; color: #6c757d; padding: 2rem;">
@@ -368,9 +392,11 @@ class GolfCompetitionManager {
                 </td>
             `;
             tbody.appendChild(row);
+            console.log('Added empty message row');
             return;
         }
 
+        console.log('Rendering competitions...');
         this.currentData.competitions.forEach((competition, index) => {
             console.log(`Rendering competition ${index + 1}:`, competition);
             const attendance = this.currentData.attendance.filter(a => a.competitionId === competition.id);
@@ -393,6 +419,8 @@ class GolfCompetitionManager {
         });
         
         console.log('Competitions table rendering completed');
+        console.log('Final tbody children count:', tbody.children.length);
+        console.log('=== renderCompetitionsTable END ===');
     }
 
     /**
