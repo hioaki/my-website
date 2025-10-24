@@ -108,6 +108,7 @@ class GolfCompetitionManager {
             this.showMainApp();
             // ログイン後、少し遅延させてからデータを読み込み
             setTimeout(() => {
+                console.log('Starting data load after login...');
                 this.loadData();
             }, 100);
         } else {
@@ -141,6 +142,12 @@ class GolfCompetitionManager {
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('mainApp').classList.remove('hidden');
         document.getElementById('settingsScreen').classList.add('hidden');
+        
+        // メインアプリ表示後、コンペ管理タブを強制的に表示
+        console.log('Main app shown, forcing competitions tab display...');
+        setTimeout(() => {
+            this.switchTab('competitions');
+        }, 50);
     }
 
     /**
@@ -237,7 +244,12 @@ class GolfCompetitionManager {
             console.log('Current data after loading:', this.currentData);
             this.saveLocalData();
             this.updateAllSelects();
-            // データ読み込み後は遅延なしで即座に描画
+            
+            // データ読み込み後、強制的にコンペ管理タブを描画
+            console.log('Force rendering competitions table after data load...');
+            this.renderCompetitionsTable();
+            
+            // 現在のタブも描画
             this.renderCurrentTab();
         } catch (error) {
             console.error('Error loading data:', error);
