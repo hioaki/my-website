@@ -199,6 +199,7 @@ class GolfCompetitionManager {
                 this.renderCompetitionsTable();
                 break;
             case 'attendance':
+                console.log('Updating attendance tab...');
                 this.updateCompetitionSelect();
                 break;
             case 'reports':
@@ -229,6 +230,7 @@ class GolfCompetitionManager {
             };
             console.log('Current data after loading:', this.currentData);
             this.saveLocalData();
+            this.updateAllSelects();
             this.renderCurrentTab();
         } catch (error) {
             console.error('Error loading data:', error);
@@ -257,6 +259,7 @@ class GolfCompetitionManager {
                 attendance: []
             };
         }
+        this.updateAllSelects();
     }
 
     /**
@@ -303,6 +306,7 @@ class GolfCompetitionManager {
      */
     renderCurrentTab() {
         const activeTab = document.querySelector('.nav-btn.active');
+        console.log('Rendering current tab:', activeTab ? activeTab.dataset.tab : 'none');
         if (activeTab) {
             this.switchTab(activeTab.dataset.tab);
         }
@@ -539,6 +543,7 @@ class GolfCompetitionManager {
         this.currentData.competitions.push(competition);
         console.log('Competitions after adding:', this.currentData.competitions);
         this.saveData();
+        this.updateAllSelects();
         this.renderCompetitionsTable();
         this.closeModal();
     }
@@ -604,8 +609,18 @@ class GolfCompetitionManager {
             // 関連する出欠データも削除
             this.currentData.attendance = this.currentData.attendance.filter(a => a.competitionId !== id);
             this.saveData();
+            this.updateAllSelects();
             this.renderCompetitionsTable();
         }
+    }
+
+    /**
+     * すべての選択肢を更新
+     */
+    updateAllSelects() {
+        console.log('Updating all selects...');
+        this.updateCompetitionSelect();
+        this.updateReportSelects();
     }
 
     /**
@@ -613,6 +628,9 @@ class GolfCompetitionManager {
      */
     updateCompetitionSelect() {
         const select = document.getElementById('competitionSelect');
+        console.log('Updating competition select. Competitions count:', this.currentData.competitions.length);
+        console.log('Competitions data:', this.currentData.competitions);
+        
         select.innerHTML = '<option value="">コンペを選択してください</option>';
         
         this.currentData.competitions.forEach(competition => {
@@ -620,7 +638,10 @@ class GolfCompetitionManager {
             option.value = competition.id;
             option.textContent = `${competition.title} (${new Date(competition.date).toLocaleDateString('ja-JP')})`;
             select.appendChild(option);
+            console.log('Added competition option:', option.textContent);
         });
+        
+        console.log('Competition select updated. Total options:', select.options.length);
     }
 
     /**
